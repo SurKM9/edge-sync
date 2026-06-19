@@ -1,2 +1,2 @@
-# edge-sync
-A deterministic, zero-allocation C++20 real-time sensor synchronization framework for heterogeneous autonomous vehicle telemetry streams.
+# EDGE-Sync
+Project EDGE-Sync is a production-grade, zero-heap-allocation C++20 synchronization framework engineered for real-time heterogeneous sensor networks. It ingests high-frequency asynchronous telemetry (e.g., 200 Hz IMU) and low-frequency data (e.g., 20 Hz Camera), establishes strict temporal alignment via lock-free SPSC queues, and routes deterministic payloads to downstream fusion strategies with microsecond-level latency.
