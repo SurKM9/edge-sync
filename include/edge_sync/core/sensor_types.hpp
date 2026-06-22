@@ -55,8 +55,15 @@ struct CameraMessage
 {
     int64_t     timestampNs; ///< Monotonic capture timestamp in nanoseconds.
     std::string imagePath;   ///< Absolute or relative path to the captured frame.
-};
 
+    // --- MOCKED VIO DATA (MVP ONLY) ---
+    // We are simulating that an upstream Computer Vision node has already 
+    // processed the image at 'imagePath' and determined our absolute 3D rotation.
+    double orientation_w;
+    double orientation_x;
+    double orientation_y;
+    double orientation_z;
+};
 } // namespace edge_sync::core
 
 #endif // EDGE_SYNC_CORE_SENSOR_TYPES_HPP
