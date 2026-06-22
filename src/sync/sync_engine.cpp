@@ -8,10 +8,9 @@
 namespace edge_sync::sync
 {
 
-SyncEngine::SyncEngine(concurrency::SpscRingBuffer<core::ImuMessage*>&    imuQueue,
-                       concurrency::SpscRingBuffer<core::CameraMessage*>& cameraQueue)
-    : m_imuQueue(imuQueue),
-      m_cameraQueue(cameraQueue)
+SyncEngine::SyncEngine(std::unique_ptr<fusion::FusionStrategy> fusionStrategy)
+    : m_fusionStrategy(std::move(fusionStrategy)),
+      m_isRunning(false)
 {
     // Bind queues but defer thread creation until start() is called explicitly.
     // This lets the caller finish setting up producers before the consumer is live.
@@ -82,11 +81,14 @@ void SyncEngine::processingLoop()
             if(latestImu != nullptr)
             {
                 // [FUSION PIPELINE ENTRY POINT]
-                // We now have a temporally aligned pair: cameraMsg and latestImu.
-                // This is where we will eventually route the data to our Math/Fusion node.
-                
-                // Example of calculating the synchronization delta (dt):
-                // int64_t timeDeltaNs = cameraMsg->timestampNs - latestImu->timestampNs;
+                // The temporal lock is achieved. Route the paired data into the math node.
+                if (m_fusionStrategy) {
+                    Eigen::Quaterniond currentOrientation = m_fusionStrategy->process(latestImu, cameraMsg);
+                    
+                    // In a production system, we would push 'currentOrientation' to an 
+                    // outbound queue for the UI or Navigation modules.
+                    // For now, the math is successfully executing!
+                }
             }
         }
 

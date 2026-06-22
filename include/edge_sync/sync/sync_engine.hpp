@@ -12,8 +12,10 @@
 
 #include "edge_sync/core/sensor_types.hpp"
 #include "edge_sync/concurrency/spsc_ring_buffer.hpp"
+#include "edge_sync/fusion/fusion_strategy.hpp"
 #include <atomic>
 #include <thread>
+#include <memory>
 
 namespace edge_sync::sync
 {
@@ -47,16 +49,8 @@ class SyncEngine
 {
 public:
 
-    /**
-     * @brief Constructs the engine and binds it to the two sensor queues.
-     *
-     * Does not start the worker thread. Call start() explicitly to begin processing.
-     *
-     * @param imuQueue    SPSC queue populated by the IMU ingestion thread.
-     * @param cameraQueue SPSC queue populated by the camera ingestion thread.
-     */
-    SyncEngine(concurrency::SpscRingBuffer<core::ImuMessage*>&    imuQueue,
-               concurrency::SpscRingBuffer<core::CameraMessage*>& cameraQueue);
+    // Inject the strategy via a unique_ptr so the engine takes ownership of it
+    explicit SyncEngine(std::unique_ptr<fusion::FusionStrategy> fusionStrategy);
 
     /**
      * @brief Stops the worker thread (if running) and destroys the engine.
@@ -104,6 +98,8 @@ private:
 
     concurrency::SpscRingBuffer<core::ImuMessage*>&    m_imuQueue;    ///< Non-owning ref to the IMU ingestion queue.
     concurrency::SpscRingBuffer<core::CameraMessage*>& m_cameraQueue; ///< Non-owning ref to the camera ingestion queue.
+
+    std::unique_ptr<fusion::FusionStrategy> m_fusionStrategy;
 
     std::atomic<bool> m_isRunning{false}; ///< Signals the worker thread to keep running; false triggers exit.
     std::thread       m_workerThread;     ///< Background thread executing processingLoop().
