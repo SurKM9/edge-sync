@@ -55,3 +55,9 @@ add_library(edge_sync_core
 
 # Link our headers (and Eigen) to this newly compiled code
 target_link_libraries(edge_sync_core PUBLIC edge_sync_headers)
+
+# Create the main program
+add_executable(edge_sync_node src/main.cpp)
+
+# Link our core library (which includes the sync and fusion modules)
+target_link_libraries(edge_sync_node PRIVATE edge_sync_core)

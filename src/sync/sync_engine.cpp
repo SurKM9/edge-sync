@@ -4,12 +4,17 @@
  */
 
 #include "edge_sync/sync/sync_engine.hpp"
+#include <iostream>
 
 namespace edge_sync::sync
 {
 
-SyncEngine::SyncEngine(std::unique_ptr<fusion::FusionStrategy> fusionStrategy)
+SyncEngine::SyncEngine(std::unique_ptr<fusion::FusionStrategy> fusionStrategy,
+    concurrency::SpscRingBuffer<core::ImuMessage*>& imuQueue,
+    concurrency::SpscRingBuffer<core::CameraMessage*>& cameraQueue)
     : m_fusionStrategy(std::move(fusionStrategy)),
+      m_imuQueue(imuQueue),
+      m_cameraQueue(cameraQueue),
       m_isRunning(false)
 {
     // Bind queues but defer thread creation until start() is called explicitly.
@@ -82,12 +87,16 @@ void SyncEngine::processingLoop()
             {
                 // [FUSION PIPELINE ENTRY POINT]
                 // The temporal lock is achieved. Route the paired data into the math node.
-                if (m_fusionStrategy) {
+                if (m_fusionStrategy) 
+                {
                     Eigen::Quaterniond currentOrientation = m_fusionStrategy->process(latestImu, cameraMsg);
                     
-                    // In a production system, we would push 'currentOrientation' to an 
-                    // outbound queue for the UI or Navigation modules.
-                    // For now, the math is successfully executing!
+                   // Add this to physically see the math engine working!
+                   std::cout << "[Fusion Node] Temporal lock achieved! Fused Orientation (w, x, y, z): "
+                        << currentOrientation.w() << ", "
+                        << currentOrientation.x() << ", "
+                        << currentOrientation.y() << ", "
+                        << currentOrientation.z() << std::endl;
                 }
             }
         }

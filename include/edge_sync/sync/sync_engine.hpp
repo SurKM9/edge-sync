@@ -49,8 +49,21 @@ class SyncEngine
 {
 public:
 
-    // Inject the strategy via a unique_ptr so the engine takes ownership of it
-    explicit SyncEngine(std::unique_ptr<fusion::FusionStrategy> fusionStrategy);
+    /**
+     * @brief Constructs the engine, taking ownership of the fusion strategy.
+     *
+     * Does not start the worker thread. Call start() explicitly to begin processing.
+     *
+     * @param fusionStrategy Concrete fusion algorithm to invoke on each aligned pair.
+     *                       The engine takes exclusive ownership via `unique_ptr`.
+     * @param imuQueue       SPSC queue populated by the IMU ingestion thread.
+     *                       Must outlive this engine.
+     * @param cameraQueue    SPSC queue populated by the camera ingestion thread.
+     *                       Must outlive this engine.
+     */
+    SyncEngine(std::unique_ptr<fusion::FusionStrategy>          fusionStrategy,
+               concurrency::SpscRingBuffer<core::ImuMessage*>&    imuQueue,
+               concurrency::SpscRingBuffer<core::CameraMessage*>& cameraQueue);
 
     /**
      * @brief Stops the worker thread (if running) and destroys the engine.
@@ -68,9 +81,9 @@ public:
     /**
      * @brief Launches the background processing thread.
      *
-     * Sets `m_isRunning` to `true` then spawns `m_workerThread` which
-     * executes processingLoop(). Calling start() on an already-running engine
-     * is undefined behaviour.
+     * Atomically sets `m_isRunning` to `true` and spawns `m_workerThread`
+     * to execute processingLoop(). Uses `compare_exchange_strong` internally,
+     * so calling start() on an already-running engine is safe — it is a no-op.
      */
     void start();
 
@@ -99,6 +112,7 @@ private:
     concurrency::SpscRingBuffer<core::ImuMessage*>&    m_imuQueue;    ///< Non-owning ref to the IMU ingestion queue.
     concurrency::SpscRingBuffer<core::CameraMessage*>& m_cameraQueue; ///< Non-owning ref to the camera ingestion queue.
 
+    /// Owned fusion algorithm; called with each aligned (IMU, camera) pair in processingLoop().
     std::unique_ptr<fusion::FusionStrategy> m_fusionStrategy;
 
     std::atomic<bool> m_isRunning{false}; ///< Signals the worker thread to keep running; false triggers exit.
