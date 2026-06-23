@@ -7,8 +7,8 @@
  * must ensure exclusive access or wrap with an appropriate synchronisation primitive.
  */
 
-#ifndef OBJECT_POOL_HPP
-#define OBJECT_POOL_HPP
+#ifndef EDGE_SYNC_CORE_OBJECT_POOL_HPP
+#define EDGE_SYNC_CORE_OBJECT_POOL_HPP
 
 #include <cstddef>
 #include <memory>
@@ -170,4 +170,4 @@ void ObjectPool<T>::release(T* item)
 
 } // namespace edge_sync::core
 
-#endif // OBJECT_POOL_HPP
+#endif // EDGE_SYNC_CORE_OBJECT_POOL_HPP

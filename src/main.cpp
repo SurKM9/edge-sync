@@ -60,19 +60,16 @@ int main()
     // accelZ = 9.81 m/s² simulates gravity on the Z axis (sensor at rest).
     // gyroX  = 0.1 rad/s simulates a slow roll rotation.
     // ---------------------------------------------------------------------------
-    core::ImuMessage imu1{1000000, 0.0, 0.0, 9.81, 0.1, 0.0, 0.0};
-    core::ImuMessage imu2{2000000, 0.0, 0.0, 9.81, 0.1, 0.0, 0.0};
-    core::ImuMessage imu3{3000000, 0.0, 0.0, 9.81, 0.1, 0.0, 0.0};
+    // The IMU insists we are completely stationary (gyro = 0, 0, 0)
+    core::ImuMessage imu1{1000000, 0.0, 0.0, 9.81, 0.0, 0.0, 0.0};
+    core::ImuMessage imu2{2000000, 0.0, 0.0, 9.81, 0.0, 0.0, 0.0};
+    core::ImuMessage imu3{3000000, 0.0, 0.0, 9.81, 0.0, 0.0, 0.0};
+    
+    // The Camera insists we just instantly turned 90-degrees left (w=0.707, z=0.707)
+    core::CameraMessage cam1{2500000, "/mock/image_001.png", 0.7071, 0.0, 0.0, 0.7071};
 
-    // Camera frame fires at t=2,500,000 ns — halfway between imu2 and imu3.
-    // The mocked VIO orientation is the identity quaternion (w=1, x=y=z=0),
-    // representing no rotation, which matches the at-rest IMU readings above.
-    core::CameraMessage cam1{2500000, "/mock/image_001.png", 1.0, 0.0, 0.0, 0.0};
-
-    // Push order is intentional: imu1 and imu2 arrive before the camera frame so
-    // the engine always has recent IMU data when it processes the camera trigger.
-    // imu3 arrives after cam1 to verify the engine does not stall waiting for it.
-    std::cout << "[Main] Pushing simulated telemetry..." << std::endl;
+    // 6. Fire the conflicting data into the queues
+    std::cout << "[Main] Pushing conflicting telemetry..." << std::endl;
     imuQueue.push(&imu1);
     imuQueue.push(&imu2);
     cameraQueue.push(&cam1);

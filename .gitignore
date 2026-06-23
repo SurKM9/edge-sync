@@ -70,3 +70,6 @@ Testing/
 
 # vs code files
 .vscode/
+
+# Custom rules / IDE configurations
+AGENTS.md

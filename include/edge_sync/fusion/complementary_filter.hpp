@@ -7,8 +7,8 @@
  * drift-corrected orientation estimate.
  */
 
-#ifndef EDGE_SYNC_FUSION_COMPLEMENTARY_FILTER_HPP_
-#define EDGE_SYNC_FUSION_COMPLEMENTARY_FILTER_HPP_
+#ifndef EDGE_SYNC_FUSION_COMPLEMENTARY_FILTER_HPP
+#define EDGE_SYNC_FUSION_COMPLEMENTARY_FILTER_HPP
 
 #include "edge_sync/fusion/fusion_strategy.hpp"
 #include <Eigen/Dense>
